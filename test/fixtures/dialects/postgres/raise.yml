@@ -1,0 +1,103 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: b507374908506a482d41b9e664e74fa146d0b429697d109d779589eb775bb726
+file:
+- statement:
+    raise_statement:
+      keyword: RAISE
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - keyword: NOTICE
+    - expression:
+        quoted_literal: "'Calling cs_create_job(%)'"
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: v_job_id
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - keyword: EXCEPTION
+    - expression:
+        quoted_literal: "'Nonexistent ID --> %'"
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: user_id
+    - keyword: USING
+    - keyword: HINT
+    - comparison_operator:
+        raw_comparison_operator: '='
+    - expression:
+        quoted_literal: "'Please check your user ID'"
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - expression:
+        quoted_literal: "'Duplicate user ID: %'"
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: user_id
+    - keyword: USING
+    - keyword: ERRCODE
+    - comparison_operator:
+        raw_comparison_operator: '='
+    - expression:
+        quoted_literal: "'unique_violation'"
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - expression:
+        quoted_literal: "'Duplicate user ID: %'"
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: user_id
+    - keyword: USING
+    - keyword: ERRCODE
+    - comparison_operator:
+        raw_comparison_operator: '='
+    - expression:
+        quoted_literal: "'23505'"
+- statement_terminator: ;
+- statement:
+    raise_statement:
+      keyword: RAISE
+      expression:
+        column_reference:
+          naked_identifier: division_by_zero
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - keyword: SQLSTATE
+    - expression:
+        quoted_literal: "'22012'"
+- statement_terminator: ;
+- statement:
+    raise_statement:
+    - keyword: RAISE
+    - expression:
+        column_reference:
+          naked_identifier: unique_violation
+    - keyword: USING
+    - keyword: MESSAGE
+    - comparison_operator:
+        raw_comparison_operator: '='
+    - expression:
+        quoted_literal: "'Duplicate user ID: '"
+        binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+        column_reference:
+          naked_identifier: user_id
+- statement_terminator: ;

@@ -1,0 +1,354 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 074c6f517517859082d20b7901cdb7760aab691dd8334b72566a761cd5241a27
+file:
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      function:
+        function_name:
+          function_name_identifier: fooplan
+        function_contents:
+          bracketed:
+          - start_bracket: (
+          - expression:
+              numeric_literal: '1'
+          - comma: ','
+          - expression:
+              quoted_literal: "'Hunter Valley'"
+          - comma: ','
+          - expression:
+              quoted_literal: "'t'"
+          - comma: ','
+          - expression:
+              numeric_literal: '200.00'
+          - end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      function:
+        function_name:
+          function_name_identifier: usrrptplan
+        function_contents:
+          bracketed:
+          - start_bracket: (
+          - expression:
+              numeric_literal: '1'
+          - comma: ','
+          - expression:
+              bare_function: current_date
+          - end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+    - keyword: EXECUTE
+    - expression:
+        quoted_literal: "'SELECT count(*) FROM mytable WHERE inserted_by = $1 AND\
+          \ inserted <= $2'"
+    - keyword: INTO
+    - naked_identifier: c
+    - keyword: USING
+    - expression:
+        column_reference:
+          naked_identifier: checked_user
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: checked_date
+- statement_terminator: ;
+- statement:
+    execute_statement:
+    - keyword: EXECUTE
+    - expression:
+      - quoted_literal: "'SELECT count(*) FROM '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_ident
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: tabname
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' WHERE inserted_by = $1 AND inserted <= $2'"
+    - keyword: INTO
+    - naked_identifier: c
+    - keyword: USING
+    - expression:
+        column_reference:
+          naked_identifier: checked_user
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: checked_date
+- statement_terminator: ;
+- statement:
+    execute_statement:
+    - keyword: EXECUTE
+    - expression:
+        function:
+          function_name:
+            function_name_identifier: format
+          function_contents:
+            bracketed:
+            - start_bracket: (
+            - expression:
+              - quoted_literal: "'SELECT count(*) FROM %I '"
+              - quoted_literal: "'WHERE inserted_by = $1 AND inserted <= $2'"
+            - comma: ','
+            - expression:
+                column_reference:
+                  naked_identifier: tabname
+            - end_bracket: )
+    - keyword: INTO
+    - naked_identifier: c
+    - keyword: USING
+    - expression:
+        column_reference:
+          naked_identifier: checked_user
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: checked_date
+- statement_terminator: ;
+- statement:
+    execute_statement:
+    - keyword: EXECUTE
+    - expression:
+        function:
+          function_name:
+            function_name_identifier: format
+          function_contents:
+            bracketed:
+            - start_bracket: (
+            - expression:
+              - quoted_literal: "'UPDATE tbl SET %I = $1 '"
+              - quoted_literal: "'WHERE key = $2'"
+            - comma: ','
+            - expression:
+                column_reference:
+                  naked_identifier: colname
+            - end_bracket: )
+    - keyword: USING
+    - expression:
+        column_reference:
+          naked_identifier: newvalue
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: keyvalue
+- statement_terminator: ;
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      expression:
+      - quoted_literal: "'UPDATE tbl SET '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_ident
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: colname
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' = '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_literal
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: newvalue
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' WHERE key = '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_literal
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: keyvalue
+              end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      expression:
+      - quoted_literal: "'UPDATE tbl SET '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_ident
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: colname
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' = '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_nullable
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: newvalue
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' WHERE key = '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_nullable
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: keyvalue
+              end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      expression:
+      - quoted_literal: "'UPDATE tbl SET '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_ident
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: colname
+              end_bracket: )
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "' = $$'"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - column_reference:
+          naked_identifier: newvalue
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - quoted_literal: "'$$ WHERE key = '"
+      - binary_operator:
+        - pipe: '|'
+        - pipe: '|'
+      - function:
+          function_name:
+            function_name_identifier: quote_literal
+          function_contents:
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: keyvalue
+              end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+      keyword: EXECUTE
+      function:
+        function_name:
+          function_name_identifier: format
+        function_contents:
+          bracketed:
+          - start_bracket: (
+          - expression:
+            - quoted_literal: "'UPDATE tbl SET %I = %L '"
+            - quoted_literal: "'WHERE key = %L'"
+          - comma: ','
+          - expression:
+              column_reference:
+                naked_identifier: colname
+          - comma: ','
+          - expression:
+              column_reference:
+                naked_identifier: newvalue
+          - comma: ','
+          - expression:
+              column_reference:
+                naked_identifier: keyvalue
+          - end_bracket: )
+- statement_terminator: ;
+- statement:
+    execute_statement:
+    - keyword: EXECUTE
+    - expression:
+        function:
+          function_name:
+            function_name_identifier: format
+          function_contents:
+            bracketed:
+            - start_bracket: (
+            - expression:
+                quoted_literal: "'UPDATE tbl SET %I = $1 WHERE key = $2'"
+            - comma: ','
+            - expression:
+                column_reference:
+                  naked_identifier: colname
+            - end_bracket: )
+    - keyword: USING
+    - expression:
+        column_reference:
+          naked_identifier: newvalue
+    - comma: ','
+    - expression:
+        column_reference:
+          naked_identifier: keyvalue
+- statement_terminator: ;

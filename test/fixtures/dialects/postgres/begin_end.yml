@@ -1,0 +1,212 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 1f99516dff1586737e3924ef0b3b8d30c08ac5055d3ee8c677eec5e38f5c25e9
+file:
+- statement:
+    begin_end_block:
+    - declare_segment:
+      - keyword: declare
+      - naked_identifier: user_id
+      - data_type:
+          keyword: integer
+      - statement_terminator: ;
+      - naked_identifier: quantity
+      - data_type:
+          keyword: numeric
+          bracketed_arguments:
+            bracketed:
+              start_bracket: (
+              numeric_literal: '5'
+              end_bracket: )
+      - statement_terminator: ;
+      - naked_identifier: url
+      - data_type:
+          keyword: varchar
+      - statement_terminator: ;
+      - naked_identifier: myrow
+      - row_type_reference:
+          table_reference:
+            naked_identifier: tablename
+          binary_operator: '%'
+          keyword: ROWTYPE
+      - statement_terminator: ;
+      - naked_identifier: myfield
+      - column_type_reference:
+          column_reference:
+          - naked_identifier: tablename
+          - dot: .
+          - naked_identifier: columnname
+          binary_operator: '%'
+          keyword: TYPE
+      - statement_terminator: ;
+      - naked_identifier: arow
+      - data_type:
+          data_type_identifier: RECORD
+      - statement_terminator: ;
+      - naked_identifier: quantity
+      - data_type:
+          keyword: integer
+      - keyword: DEFAULT
+      - expression:
+          numeric_literal: '32'
+      - statement_terminator: ;
+      - naked_identifier: url
+      - data_type:
+          keyword: varchar
+      - assignment_operator: :=
+      - expression:
+          quoted_literal: "'http://mysite.com'"
+      - statement_terminator: ;
+      - naked_identifier: transaction_time
+      - keyword: CONSTANT
+      - data_type:
+          datetime_type_identifier:
+          - keyword: timestamp
+          - keyword: with
+          - keyword: time
+          - keyword: zone
+      - assignment_operator: :=
+      - expression:
+          function:
+            function_name:
+              function_name_identifier: now
+            function_contents:
+              bracketed:
+                start_bracket: (
+                end_bracket: )
+      - statement_terminator: ;
+      - naked_identifier: x
+      - data_type:
+          keyword: integer
+      - assignment_operator: :=
+      - expression:
+          numeric_literal: '1'
+      - statement_terminator: ;
+      - naked_identifier: y
+      - data_type:
+          keyword: integer
+      - assignment_operator: :=
+      - expression:
+          column_reference:
+            naked_identifier: x
+          binary_operator: +
+          numeric_literal: '1'
+      - statement_terminator: ;
+    - keyword: begin
+    - statement:
+        null_statement:
+          keyword: 'null'
+    - statement_terminator: ;
+    - keyword: end
+- statement_terminator: ;
+- statement:
+    begin_end_block:
+    - keyword: BEGIN
+    - statement:
+        select_statement:
+          select_clause:
+            keyword: SELECT
+            select_clause_element:
+              wildcard_expression:
+                wildcard_identifier:
+                  star: '*'
+          into_clause:
+          - keyword: INTO
+          - keyword: STRICT
+          - table_reference:
+              naked_identifier: myrec
+          from_clause:
+            keyword: FROM
+            from_expression:
+              from_expression_element:
+                table_expression:
+                  table_reference:
+                    naked_identifier: emp
+          where_clause:
+            keyword: WHERE
+            expression:
+            - column_reference:
+                naked_identifier: empname
+            - comparison_operator:
+                raw_comparison_operator: '='
+            - column_reference:
+                naked_identifier: myname
+    - statement_terminator: ;
+    - keyword: EXCEPTION
+    - keyword: WHEN
+    - naked_identifier: NO_DATA_FOUND
+    - keyword: THEN
+    - statement:
+        raise_statement:
+        - keyword: RAISE
+        - keyword: EXCEPTION
+        - expression:
+            quoted_literal: "'employee % not found'"
+        - comma: ','
+        - expression:
+            column_reference:
+              naked_identifier: myname
+    - statement_terminator: ;
+    - keyword: WHEN
+    - naked_identifier: TOO_MANY_ROWS
+    - keyword: THEN
+    - statement:
+        raise_statement:
+        - keyword: RAISE
+        - keyword: EXCEPTION
+        - expression:
+            quoted_literal: "'employee % not unique'"
+        - comma: ','
+        - expression:
+            column_reference:
+              naked_identifier: myname
+    - statement_terminator: ;
+    - keyword: END
+- statement_terminator: ;
+- statement:
+    begin_end_block:
+    - keyword: BEGIN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: y
+          assignment_operator: :=
+          expression:
+            column_reference:
+              naked_identifier: x
+            binary_operator: /
+            numeric_literal: '0'
+    - statement_terminator: ;
+    - keyword: EXCEPTION
+    - keyword: WHEN
+    - naked_identifier: division_by_zero
+    - keyword: THEN
+    - statement:
+        null_statement:
+          keyword: 'NULL'
+    - statement_terminator: ;
+    - keyword: END
+- statement_terminator: ;
+- statement:
+    begin_end_block:
+    - keyword: BEGIN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: y
+          assignment_operator: :=
+          expression:
+            column_reference:
+              naked_identifier: x
+            binary_operator: /
+            numeric_literal: '0'
+    - statement_terminator: ;
+    - keyword: EXCEPTION
+    - keyword: WHEN
+    - naked_identifier: division_by_zero
+    - keyword: THEN
+    - keyword: END
+- statement_terminator: ;

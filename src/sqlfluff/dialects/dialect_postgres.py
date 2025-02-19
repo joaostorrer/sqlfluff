@@ -416,6 +416,14 @@ postgres_dialect.add(
     FullTextSearchOperatorSegment=TypedParser(
         "full_text_search_operator", LiteralSegment, type="full_text_search_operator"
     ),
+    StatementAndDelimiterGrammar=Sequence(
+        Ref("StatementSegment"),
+        Ref("DelimiterGrammar", optional=True),
+    ),
+    OneOrMoreStatementsGrammar=AnyNumberOf(
+        Ref("StatementAndDelimiterGrammar"),
+        min_times=1,
+    ),
 )
 
 postgres_dialect.replace(
@@ -1678,7 +1686,7 @@ class IntoClauseSegment(BaseSegment):
 
     match_grammar = Sequence(
         "INTO",
-        OneOf("TEMPORARY", "TEMP", "UNLOGGED", optional=True),
+        OneOf("TEMPORARY", "TEMP", "UNLOGGED", "STRICT", optional=True),
         Ref.keyword("TABLE", optional=True),
         Ref("TableReferenceSegment"),
     )
@@ -2292,7 +2300,7 @@ class CreateTableAsStatementSegment(BaseSegment):
             OptionallyBracketed(Ref("SelectableGrammar")),
             OptionallyBracketed(Sequence("TABLE", Ref("TableReferenceSegment"))),
             Ref("ValuesClauseSegment"),
-            OptionallyBracketed(Sequence("EXECUTE", Ref("FunctionSegment"))),
+            OptionallyBracketed(Ref("ExecuteStatementSegment")),
         ),
         Ref("WithDataClauseSegment", optional=True),
     )
@@ -2905,7 +2913,7 @@ class CreateMaterializedViewStatementSegment(BaseSegment):
             OptionallyBracketed(Ref("SelectableGrammar")),
             OptionallyBracketed(Sequence("TABLE", Ref("TableReferenceSegment"))),
             Ref("ValuesClauseSegment"),
-            OptionallyBracketed(Sequence("EXECUTE", Ref("FunctionSegment"))),
+            OptionallyBracketed(Ref("ExecuteStatementSegment")),
         ),
         Ref("WithDataClauseSegment", optional=True),
     )
@@ -4813,6 +4821,13 @@ class StatementSegment(ansi.StatementSegment):
             Ref("DropForeignTableStatement"),
             Ref("CreateOperatorStatementSegment"),
             Ref("AlterForeignTableStatementSegment"),
+            Ref("BeginEndSegment"),
+            Ref("RaiseStatementSegment"),
+            Ref("NullStatementSegment"),
+            Ref("ExecuteStatementSegment"),
+            Ref("PerformStatementSegment"),
+            Ref("PrepareStatementSegment"),
+            Ref("AssignmentStatementSegment"),
         ],
     )
 
@@ -6612,4 +6627,245 @@ class AlterForeignTableActionSegment(AlterTableActionSegment):
                 ),
             )
         ]
+    )
+
+
+class TransactionStatementSegment(BaseSegment):
+    """A `COMMIT`, `ROLLBACK` or `TRANSACTION` statement."""
+
+    type = "transaction_statement"
+    match_grammar: Matchable = Sequence(
+        # COMMIT [ WORK ] [ AND [ NO ] CHAIN ]
+        # ROLLBACK [ WORK ] [ AND [ NO ] CHAIN ]
+        # BEGIN | END TRANSACTION | WORK
+        # NOTE: "TO SAVEPOINT" is not yet supported
+        # https://docs.snowflake.com/en/sql-reference/sql/begin.html
+        # https://www.postgresql.org/docs/current/sql-end.html
+        OneOf("START", "BEGIN", "COMMIT", "ROLLBACK"),
+        OneOf("TRANSACTION", "WORK", optional=True),
+        Sequence("NAME", Ref("SingleIdentifierGrammar"), optional=True),
+        Sequence("AND", Ref.keyword("NO", optional=True), "CHAIN", optional=True),
+    )
+
+
+class BeginEndSegment(BaseSegment):
+    """A `BEGIN/END` block.
+
+    Encloses multiple statements into a single statement object.
+
+    https://www.postgresql.org/docs/17/plpgsql-structure.html
+    """
+
+    type = "begin_end_block"
+    match_grammar = Sequence(
+        Ref("DeclareSegment", optional=True),
+        "BEGIN",
+        Indent,
+        Ref("OneOrMoreStatementsGrammar"),
+        Sequence(
+            "EXCEPTION",
+            AnyNumberOf(
+                "WHEN",
+                OneOf(
+                    "OTHERS",
+                    Sequence(
+                        Ref("SingleIdentifierGrammar"),
+                        AnyNumberOf(
+                            Sequence(
+                                "OR",
+                                Ref("SingleIdentifierGrammar"),
+                            )
+                        ),
+                    ),
+                ),
+                "THEN",
+                Ref("OneOrMoreStatementsGrammar", optional=True),
+            ),
+            optional=True,
+        ),
+        Dedent,
+        "END",
+        Ref("ObjectReferenceSegment", optional=True),
+    )
+
+
+class DeclareSegment(BaseSegment):
+    """A declaration segment in PL/PgSQL.
+
+    https://www.postgresql.org/docs/17/plpgsql-declarations.html
+    """
+
+    type = "declare_segment"
+
+    match_grammar = Sequence(
+        Ref.keyword("DECLARE", optional=True),
+        AnyNumberOf(
+            Delimited(
+                OneOf(
+                    Sequence(
+                        OneOf(
+                            Sequence(
+                                Ref("SingleIdentifierGrammar"),
+                                Ref.keyword("CONSTANT", optional=True),
+                                OneOf(
+                                    Ref("DatatypeSegment"),
+                                    Ref("ColumnTypeReferenceSegment"),
+                                    Ref("RowTypeReferenceSegment"),
+                                ),
+                            ),
+                        ),
+                        Sequence("NOT", "NULL", optional=True),
+                        Sequence(
+                            OneOf(
+                                Ref("WalrusOperatorSegment"),
+                                "DEFAULT",
+                            ),
+                            Ref("ExpressionSegment"),
+                            optional=True,
+                        ),
+                        Ref("DelimiterGrammar"),
+                    ),
+                ),
+                delimiter=Ref("DelimiterGrammar"),
+                terminators=["BEGIN", "END"],
+            )
+        ),
+    )
+
+
+class RaiseStatementSegment(BaseSegment):
+    """A `RAISE` statement.
+
+    https://www.postgresql.org/docs/17/plpgsql-errors-and-messages.html
+    """
+
+    type = "raise_statement"
+
+    match_grammar = Sequence(
+        "RAISE",
+        OneOf("DEBUG", "LOG", "INFO", "NOTICE", "WARNING", "EXCEPTION", optional=True),
+        Sequence(
+            Ref.keyword("SQLSTATE", optional=True),
+            Delimited(Ref("ExpressionSegment")),
+            Sequence(
+                "USING",
+                Delimited(
+                    Sequence(
+                        OneOf(
+                            "MESSAGE",
+                            "DETAIL",
+                            "HINT",
+                            "ERRCODE",
+                            "COLUMN",
+                            "CONSTRAINT",
+                            "DATATYPE",
+                            "TABLE",
+                            "SCHEMA",
+                        ),
+                        Ref("EqualsSegment"),
+                        Ref("ExpressionSegment"),
+                    )
+                ),
+                optional=True,
+            ),
+            optional=True,
+        ),
+    )
+
+
+class NullStatementSegment(BaseSegment):
+    """A `NULL` statement inside a block."""
+
+    type = "null_statement"
+
+    match_grammar = Sequence("NULL")
+
+
+class ExecuteStatementSegment(BaseSegment):
+    """An `EXECUTE` statement.
+
+    https://www.postgresql.org/docs/17/sql-execute.html
+    """
+
+    type = "execute_statement"
+
+    match_grammar = Sequence(
+        "EXECUTE",
+        OneOf(
+            Ref("FunctionSegment"),
+            Sequence(
+                Ref("ExpressionSegment"),
+                Sequence(
+                    "INTO",
+                    Ref.keyword("STRICT", optional=True),
+                    Ref("NakedIdentifierSegment"),
+                    optional=True,
+                ),
+                Sequence("USING", Delimited(Ref("ExpressionSegment")), optional=True),
+            ),
+        ),
+    )
+
+
+class PerformStatementSegment(BaseSegment):
+    """A `PERFORM` statement.
+
+    https://www.postgresql.org/docs/17/plpgsql-statements.html#PLPGSQL-STATEMENTS-GENERAL-SQL
+    """
+
+    type = "perform_statement"
+
+    match_grammar = Sequence(
+        "PERFORM",
+        Ref("FunctionSegment"),
+    )
+
+
+class PrepareStatementSegment(BaseSegment):
+    """A `PREPARE` statement.
+
+    https://www.postgresql.org/docs/17/sql-prepare.html
+    """
+
+    type = "prepare_statement"
+
+    match_grammar = Sequence(
+        "PREPARE",
+        Ref("NakedIdentifierSegment"),
+        Bracketed(Delimited(Ref("DatatypeSegment"))),
+        "AS",
+        Ref("StatementSegment"),
+    )
+
+
+class AssignmentStatementSegment(BaseSegment):
+    """A assignment segment in PL/PgSQL.
+
+    https://www.postgresql.org/docs/17/plpgsql-statements.html#PLPGSQL-STATEMENTS-ASSIGNMENT
+    """
+
+    type = "assignment_segment_statement"
+
+    match_grammar = Sequence(
+        AnyNumberOf(
+            Ref("ObjectReferenceSegment"),
+            Bracketed(Ref("ObjectReferenceSegment"), optional=True),
+            Ref("DotSegment", optional=True),
+            optional=True,
+        ),
+        OneOf(Ref("WalrusOperatorSegment"), "DEFAULT"),
+        Ref("ExpressionSegment"),
+    )
+
+
+class RowTypeReferenceSegment(BaseSegment):
+    """A column type reference segment (e.g. `table_name%rowtype`).
+
+    https://www.postgresql.org/docs/17/plpgsql-declarations.html#PLPGSQL-DECLARATION-ROWTYPES
+    """
+
+    type = "row_type_reference"
+
+    match_grammar = Sequence(
+        Ref("TableReferenceSegment"), Ref("ModuloSegment"), "ROWTYPE"
     )
