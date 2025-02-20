@@ -1,0 +1,47 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 06f356832978da3792eb9ce529cf027a94bfcec426d782f796e2d04b05c1e29a
+file:
+- statement:
+    while_loop_statement:
+      keyword: WHILE
+      expression:
+      - column_reference:
+          naked_identifier: amount_owed
+      - comparison_operator:
+          raw_comparison_operator: '>'
+      - numeric_literal: '0'
+      - binary_operator: AND
+      - column_reference:
+          naked_identifier: gift_certificate_balance
+      - comparison_operator:
+          raw_comparison_operator: '>'
+      - numeric_literal: '0'
+      loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    while_loop_statement:
+      keyword: WHILE
+      expression:
+        keyword: NOT
+        column_reference:
+          naked_identifier: done
+      loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;

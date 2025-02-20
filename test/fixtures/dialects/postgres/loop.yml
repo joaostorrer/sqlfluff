@@ -1,0 +1,76 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: c69ba4039805c1c0f97a0e0aa179d15c077be2ce25848a093d0a7f3df8fac211
+file:
+- statement:
+    loop_statement:
+    - keyword: LOOP
+    - statement:
+        if_then_statement:
+        - if_clause:
+          - keyword: IF
+          - expression:
+              column_reference:
+                naked_identifier: count
+              comparison_operator:
+                raw_comparison_operator: '>'
+              numeric_literal: '0'
+          - keyword: THEN
+        - statement:
+            exit_statement:
+              keyword: EXIT
+        - statement_terminator: ;
+        - keyword: END
+        - keyword: IF
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    loop_statement:
+    - keyword: LOOP
+    - statement:
+        exit_statement:
+        - keyword: EXIT
+        - keyword: WHEN
+        - expression:
+            column_reference:
+              naked_identifier: count
+            comparison_operator:
+              raw_comparison_operator: '>'
+            numeric_literal: '0'
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    loop_statement:
+    - keyword: LOOP
+    - statement:
+        exit_statement:
+        - keyword: EXIT
+        - keyword: WHEN
+        - expression:
+            column_reference:
+              naked_identifier: count
+            comparison_operator:
+              raw_comparison_operator: '>'
+            numeric_literal: '100'
+    - statement_terminator: ;
+    - statement:
+        continue_statement:
+        - keyword: CONTINUE
+        - keyword: WHEN
+        - expression:
+            column_reference:
+              naked_identifier: count
+            comparison_operator:
+              raw_comparison_operator: <
+            numeric_literal: '50'
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: LOOP
+- statement_terminator: ;

@@ -1,0 +1,174 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 49517b5aad09e252685d195833f5837244dc763090db07082bd830d478799170
+file:
+- statement:
+    for_loop_statement:
+    - keyword: FOR
+    - naked_identifier: i
+    - keyword: IN
+    - numeric_literal: '1'
+    - dot: .
+    - dot: .
+    - numeric_literal: '10'
+    - loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    for_loop_statement:
+    - keyword: FOR
+    - naked_identifier: i
+    - keyword: IN
+    - keyword: REVERSE
+    - numeric_literal: '10'
+    - dot: .
+    - dot: .
+    - numeric_literal: '1'
+    - loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    for_loop_statement:
+    - keyword: FOR
+    - naked_identifier: i
+    - keyword: IN
+    - keyword: REVERSE
+    - numeric_literal: '10'
+    - dot: .
+    - dot: .
+    - numeric_literal: '1'
+    - keyword: BY
+    - expression:
+        numeric_literal: '2'
+    - loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;
+- statement:
+    for_loop_statement:
+    - keyword: FOR
+    - naked_identifier: mviews
+    - keyword: IN
+    - bracketed:
+        start_bracket: (
+        select_statement:
+          select_clause:
+          - keyword: SELECT
+          - select_clause_element:
+              column_reference:
+              - naked_identifier: n
+              - dot: .
+              - naked_identifier: nspname
+              alias_expression:
+                keyword: AS
+                naked_identifier: mv_schema
+          - comma: ','
+          - select_clause_element:
+              column_reference:
+              - naked_identifier: c
+              - dot: .
+              - naked_identifier: relname
+              alias_expression:
+                keyword: AS
+                naked_identifier: mv_name
+          - comma: ','
+          - select_clause_element:
+              function:
+                function_name:
+                  naked_identifier: pg_catalog
+                  dot: .
+                  function_name_identifier: pg_get_userbyid
+                function_contents:
+                  bracketed:
+                    start_bracket: (
+                    expression:
+                      column_reference:
+                      - naked_identifier: c
+                      - dot: .
+                      - naked_identifier: relowner
+                    end_bracket: )
+              alias_expression:
+                keyword: AS
+                naked_identifier: owner
+          from_clause:
+            keyword: FROM
+            from_expression:
+              from_expression_element:
+                table_expression:
+                  table_reference:
+                  - naked_identifier: pg_catalog
+                  - dot: .
+                  - naked_identifier: pg_class
+                alias_expression:
+                  naked_identifier: c
+              join_clause:
+              - keyword: LEFT
+              - keyword: JOIN
+              - from_expression_element:
+                  table_expression:
+                    table_reference:
+                    - naked_identifier: pg_catalog
+                    - dot: .
+                    - naked_identifier: pg_namespace
+                  alias_expression:
+                    naked_identifier: n
+              - join_on_condition:
+                  keyword: 'ON'
+                  bracketed:
+                    start_bracket: (
+                    expression:
+                    - column_reference:
+                      - naked_identifier: n
+                      - dot: .
+                      - naked_identifier: oid
+                    - comparison_operator:
+                        raw_comparison_operator: '='
+                    - column_reference:
+                      - naked_identifier: c
+                      - dot: .
+                      - naked_identifier: relnamespace
+                    end_bracket: )
+          where_clause:
+            keyword: WHERE
+            expression:
+              column_reference:
+              - naked_identifier: c
+              - dot: .
+              - naked_identifier: relkind
+              comparison_operator:
+                raw_comparison_operator: '='
+              quoted_literal: "'m'"
+          orderby_clause:
+          - keyword: ORDER
+          - keyword: BY
+          - numeric_literal: '1'
+        end_bracket: )
+    - loop_statement:
+      - keyword: LOOP
+      - statement:
+          null_statement:
+            keyword: 'null'
+      - statement_terminator: ;
+      - keyword: END
+      - keyword: LOOP
+- statement_terminator: ;

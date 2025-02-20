@@ -1,0 +1,9 @@
+FOREACH x IN ARRAY $1
+LOOP
+    s := s + x;
+END LOOP;
+
+FOREACH x SLICE 1 IN ARRAY $1
+LOOP
+    RAISE NOTICE 'row = %', x;
+END LOOP;

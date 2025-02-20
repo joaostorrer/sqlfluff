@@ -1,0 +1,84 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 1515c07fd999736a2b9fe11a229409143403d1e1f3b7c87c30af70401f07e3fb
+file:
+- statement:
+    case_expression:
+    - keyword: CASE
+    - expression:
+        column_reference:
+          naked_identifier: x
+    - when_clause:
+      - keyword: WHEN
+      - expression:
+          numeric_literal: '1'
+      - comma: ','
+      - expression:
+          numeric_literal: '2'
+      - keyword: THEN
+      - statement:
+          assignment_segment_statement:
+            object_reference:
+              naked_identifier: msg
+            assignment_operator: :=
+            expression:
+              quoted_literal: "'one or two'"
+      - statement_terminator: ;
+    - else_clause:
+        keyword: ELSE
+        statement:
+          assignment_segment_statement:
+            object_reference:
+              naked_identifier: msg
+            assignment_operator: :=
+            expression:
+              quoted_literal: "'other value than one or two'"
+        statement_terminator: ;
+    - keyword: END
+    - keyword: CASE
+- statement_terminator: ;
+- statement:
+    case_expression:
+    - keyword: CASE
+    - when_clause:
+      - keyword: WHEN
+      - expression:
+        - column_reference:
+            naked_identifier: x
+        - keyword: BETWEEN
+        - numeric_literal: '0'
+        - keyword: AND
+        - numeric_literal: '10'
+      - keyword: THEN
+      - statement:
+          assignment_segment_statement:
+            object_reference:
+              naked_identifier: msg
+            assignment_operator: :=
+            expression:
+              quoted_literal: "'value is between zero and ten'"
+      - statement_terminator: ;
+    - when_clause:
+      - keyword: WHEN
+      - expression:
+        - column_reference:
+            naked_identifier: x
+        - keyword: BETWEEN
+        - numeric_literal: '11'
+        - keyword: AND
+        - numeric_literal: '20'
+      - keyword: THEN
+      - statement:
+          assignment_segment_statement:
+            object_reference:
+              naked_identifier: msg
+            assignment_operator: :=
+            expression:
+              quoted_literal: "'value is between eleven and twenty'"
+      - statement_terminator: ;
+    - keyword: END
+    - keyword: CASE
+- statement_terminator: ;

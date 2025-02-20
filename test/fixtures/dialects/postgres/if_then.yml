@@ -1,0 +1,256 @@
+# YML test files are auto-generated from SQL files and should not be edited by
+# hand. To help enforce this, the "hash" field in the file must match a hash
+# computed by SQLFluff when running the tests. Please run
+# `python test/generate_parse_fixture_yml.py`  to generate them after adding or
+# altering SQL files.
+_hash: 0198d483a6f81fba4b3ac672d35971ac660be6f05666c742517c3653d37011ab
+file:
+- statement:
+    if_then_statement:
+    - if_clause:
+      - keyword: IF
+      - expression:
+          column_reference:
+            naked_identifier: v_user_id
+          comparison_operator:
+          - raw_comparison_operator: <
+          - raw_comparison_operator: '>'
+          numeric_literal: '0'
+      - keyword: THEN
+    - statement:
+        update_statement:
+          keyword: UPDATE
+          table_reference:
+            naked_identifier: users
+          set_clause_list:
+            keyword: SET
+            set_clause:
+            - column_reference:
+                naked_identifier: email
+            - comparison_operator:
+                raw_comparison_operator: '='
+            - column_reference:
+                naked_identifier: v_email
+          where_clause:
+            keyword: WHERE
+            expression:
+            - column_reference:
+                naked_identifier: user_id
+            - comparison_operator:
+                raw_comparison_operator: '='
+            - column_reference:
+                naked_identifier: v_user_id
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: IF
+- statement_terminator: ;
+- statement:
+    if_then_statement:
+    - if_clause:
+      - keyword: IF
+      - expression:
+        - column_reference:
+            naked_identifier: parentid
+        - keyword: IS
+        - null_literal: 'NULL'
+        - binary_operator: OR
+        - column_reference:
+            naked_identifier: parentid
+        - comparison_operator:
+            raw_comparison_operator: '='
+        - quoted_literal: "''"
+      - keyword: THEN
+    - statement:
+        return_statement:
+          keyword: RETURN
+          expression:
+            column_reference:
+              naked_identifier: fullname
+    - statement_terminator: ;
+    - keyword: ELSE
+    - statement:
+        return_statement:
+          keyword: RETURN
+          expression:
+          - function:
+              function_name:
+                function_name_identifier: hp_true_filename
+              function_contents:
+                bracketed:
+                  start_bracket: (
+                  expression:
+                    column_reference:
+                      naked_identifier: parentid
+                  end_bracket: )
+          - binary_operator:
+            - pipe: '|'
+            - pipe: '|'
+          - quoted_literal: "'/'"
+          - binary_operator:
+            - pipe: '|'
+            - pipe: '|'
+          - column_reference:
+              naked_identifier: fullname
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: IF
+- statement_terminator: ;
+- statement:
+    if_then_statement:
+    - if_clause:
+      - keyword: IF
+      - expression:
+          column_reference:
+            naked_identifier: v_count
+          comparison_operator:
+            raw_comparison_operator: '>'
+          numeric_literal: '0'
+      - keyword: THEN
+    - statement:
+        insert_statement:
+        - keyword: INSERT
+        - keyword: INTO
+        - table_reference:
+            naked_identifier: users_count
+        - bracketed:
+            start_bracket: (
+            column_reference:
+              naked_identifier: count
+            end_bracket: )
+        - values_clause:
+            keyword: VALUES
+            bracketed:
+              start_bracket: (
+              expression:
+                column_reference:
+                  naked_identifier: v_count
+              end_bracket: )
+    - statement_terminator: ;
+    - statement:
+        return_statement:
+          keyword: RETURN
+          expression:
+            quoted_literal: "'t'"
+    - statement_terminator: ;
+    - keyword: ELSE
+    - statement:
+        return_statement:
+          keyword: RETURN
+          expression:
+            quoted_literal: "'f'"
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: IF
+- statement_terminator: ;
+- statement:
+    if_then_statement:
+    - if_clause:
+      - keyword: IF
+      - expression:
+          column_reference:
+            naked_identifier: number
+          comparison_operator:
+            raw_comparison_operator: '='
+          numeric_literal: '0'
+      - keyword: THEN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: result
+          assignment_operator: :=
+          expression:
+            quoted_literal: "'zero'"
+    - statement_terminator: ;
+    - keyword: ELSIF
+    - expression:
+        column_reference:
+          naked_identifier: number
+        comparison_operator:
+          raw_comparison_operator: '>'
+        numeric_literal: '0'
+    - keyword: THEN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: result
+          assignment_operator: :=
+          expression:
+            quoted_literal: "'positive'"
+    - statement_terminator: ;
+    - keyword: ELSIF
+    - expression:
+        column_reference:
+          naked_identifier: number
+        comparison_operator:
+          raw_comparison_operator: <
+        numeric_literal: '0'
+    - keyword: THEN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: result
+          assignment_operator: :=
+          expression:
+            quoted_literal: "'negative'"
+    - statement_terminator: ;
+    - keyword: ELSE
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: result
+          assignment_operator: :=
+          expression:
+            quoted_literal: "'NULL'"
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: IF
+- statement_terminator: ;
+- statement:
+    if_then_statement:
+    - if_clause:
+      - keyword: IF
+      - expression:
+          column_reference:
+          - naked_identifier: demo_row
+          - dot: .
+          - naked_identifier: sex
+          comparison_operator:
+            raw_comparison_operator: '='
+          quoted_literal: "'m'"
+      - keyword: THEN
+    - statement:
+        assignment_segment_statement:
+          object_reference:
+            naked_identifier: pretty_sex
+          assignment_operator: :=
+          expression:
+            quoted_literal: "'man'"
+    - statement_terminator: ;
+    - keyword: ELSE
+    - statement:
+        if_then_statement:
+        - if_clause:
+          - keyword: IF
+          - expression:
+              column_reference:
+              - naked_identifier: demo_row
+              - dot: .
+              - naked_identifier: sex
+              comparison_operator:
+                raw_comparison_operator: '='
+              quoted_literal: "'f'"
+          - keyword: THEN
+        - statement:
+            assignment_segment_statement:
+              object_reference:
+                naked_identifier: pretty_sex
+              assignment_operator: :=
+              expression:
+                quoted_literal: "'woman'"
+        - statement_terminator: ;
+        - keyword: END
+        - keyword: IF
+    - statement_terminator: ;
+    - keyword: END
+    - keyword: IF
+- statement_terminator: ;

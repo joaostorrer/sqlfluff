@@ -11,9 +11,11 @@ from sqlfluff.core.parser import (
     CodeSegment,
     CommentSegment,
     CompositeComparisonOperatorSegment,
+    Conditional,
     Dedent,
     Delimited,
     IdentifierSegment,
+    ImplicitIndent,
     Indent,
     LiteralKeywordSegment,
     LiteralSegment,
@@ -271,6 +273,11 @@ postgres_dialect.patch_lexer_matchers(
             ),
         ),
         RegexLexer("word", r"[a-zA-Z_][0-9a-zA-Z_$]*", WordSegment),
+        RegexLexer(
+            "numeric_literal",
+            r"(?>\d+\.\d+|\d+\.(?![\.\w])|\d+)(\.?[eE][+-]?\d+)?((?<!\.)|(?=\b))",
+            LiteralSegment,
+        ),
     ]
 )
 
@@ -423,6 +430,22 @@ postgres_dialect.add(
     OneOrMoreStatementsGrammar=AnyNumberOf(
         Ref("StatementAndDelimiterGrammar"),
         min_times=1,
+    ),
+    IterationBoundsGrammar=OneOf(
+        Ref("NumericLiteralSegment"),
+        Ref("SingleIdentifierGrammar"),
+        Sequence(
+            Ref("SingleIdentifierGrammar"),
+            Ref("DotSegment"),
+            Ref("SingleIdentifierGrammar"),
+        ),
+    ),
+    IterationSteppedControlGrammar=Sequence(
+        Ref("IterationBoundsGrammar"),
+        Ref("DotSegment"),
+        Ref("DotSegment"),
+        Ref("IterationBoundsGrammar"),
+        Sequence("BY", Ref("ExpressionSegment"), optional=True),
     ),
 )
 
@@ -1758,6 +1781,7 @@ class UnorderedSelectStatementSegment(ansi.UnorderedSelectStatementSegment):
             Ref.keyword("RETURNING"),
             Ref("WithCheckOptionSegment"),
             Ref("MetaCommandQueryBufferSegment"),
+            Ref.keyword("LOOP"),
         ],
     )
 
@@ -1786,6 +1810,7 @@ class SelectStatementSegment(ansi.SelectStatementSegment):
             Ref.keyword("RETURNING"),
             Ref("WithCheckOptionSegment"),
             Ref("MetaCommandQueryBufferSegment"),
+            Ref.keyword("LOOP"),
         ],
     )
 
@@ -4828,6 +4853,17 @@ class StatementSegment(ansi.StatementSegment):
             Ref("PerformStatementSegment"),
             Ref("PrepareStatementSegment"),
             Ref("AssignmentStatementSegment"),
+            Ref("ReturnStatementSegment"),
+            Ref("ReturnNextStatementSegment"),
+            Ref("ReturnQueryStatementSegment"),
+            Ref("IfExpressionStatement"),
+            Ref("CaseExpressionSegment"),
+            Ref("LoopStatementSegment"),
+            Ref("ExitStatementSegment"),
+            Ref("ContinueStatementSegment"),
+            Ref("ForLoopStatementSegment"),
+            Ref("ForeachStatementSegment"),
+            Ref("WhileLoopStatementSegment"),
         ],
     )
 
@@ -6868,4 +6904,296 @@ class RowTypeReferenceSegment(BaseSegment):
 
     match_grammar = Sequence(
         Ref("TableReferenceSegment"), Ref("ModuloSegment"), "ROWTYPE"
+    )
+
+
+class ReturnStatementSegment(BaseSegment):
+    """A `RETURN` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-STATEMENTS-RETURNING-RETURN
+    """
+
+    type = "return_statement"
+
+    match_grammar = Sequence(
+        "RETURN",
+        Ref("ExpressionSegment", optional=True),
+    )
+
+
+class ReturnNextStatementSegment(BaseSegment):
+    """A `RETURN NEXT` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-STATEMENTS-RETURNING-RETURN-NEXT
+    """
+
+    type = "return_next_statement"
+
+    match_grammar = Sequence(
+        "RETURN",
+        "NEXT",
+        Ref("ExpressionSegment", optional=True),
+    )
+
+
+class ReturnQueryStatementSegment(BaseSegment):
+    """A `RETURN QUERY` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-STATEMENTS-RETURNING-RETURN-NEXT
+    """
+
+    type = "return_query_statement"
+
+    match_grammar = Sequence(
+        "RETURN",
+        "QUERY",
+        OneOf(
+            Ref("SelectStatementSegment"),
+            Ref("ExecuteStatementSegment"),
+        ),
+    )
+
+
+class IfExpressionStatement(BaseSegment):
+    """IF-ELSE statement.
+
+    https://docs.oracle.com/en/database/oracle/oracle-database/23/lnpls/IF-statement.html
+    """
+
+    type = "if_then_statement"
+
+    match_grammar = Sequence(
+        Ref("IfClauseSegment"),
+        Ref("OneOrMoreStatementsGrammar"),
+        AnyNumberOf(
+            Sequence(
+                "ELSIF",
+                Ref("ExpressionSegment"),
+                "THEN",
+                Ref("OneOrMoreStatementsGrammar"),
+            ),
+        ),
+        Sequence(
+            "ELSE",
+            Ref("OneOrMoreStatementsGrammar"),
+            optional=True,
+        ),
+        "END",
+        "IF",
+    )
+
+
+class IfClauseSegment(BaseSegment):
+    """IF clause.
+
+    https://docs.oracle.com/en/database/oracle/oracle-database/23/lnpls/IF-statement.html
+    """
+
+    type = "if_clause"
+
+    match_grammar = Sequence("IF", Ref("ExpressionSegment"), "THEN")
+
+
+class CaseExpressionSegment(BaseSegment):
+    """A `CASE WHEN` clause.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONDITIONALS-SIMPLE-CASE
+    """
+
+    type = "case_expression"
+    match_grammar: Matchable = OneOf(
+        Sequence(
+            "CASE",
+            ImplicitIndent,
+            AnyNumberOf(
+                Ref("WhenClauseSegment"),
+                reset_terminators=True,
+                terminators=[Ref.keyword("ELSE"), Ref.keyword("END")],
+            ),
+            Ref(
+                "ElseClauseSegment",
+                optional=True,
+                reset_terminators=True,
+                terminators=[Ref.keyword("END")],
+            ),
+            Dedent,
+            "END",
+            Ref.keyword("CASE", optional=True),
+            Ref("SingleIdentifierGrammar", optional=True),
+        ),
+        Sequence(
+            "CASE",
+            Ref("ExpressionSegment"),
+            ImplicitIndent,
+            AnyNumberOf(
+                Ref("WhenClauseSegment"),
+                reset_terminators=True,
+                terminators=[Ref.keyword("ELSE"), Ref.keyword("END")],
+            ),
+            Ref(
+                "ElseClauseSegment",
+                optional=True,
+                reset_terminators=True,
+                terminators=[Ref.keyword("END")],
+            ),
+            Dedent,
+            "END",
+            Ref.keyword("CASE", optional=True),
+            Ref("SingleIdentifierGrammar", optional=True),
+        ),
+        terminators=[
+            Ref("ComparisonOperatorGrammar"),
+            Ref("CommaSegment"),
+            Ref("BinaryOperatorGrammar"),
+        ],
+    )
+
+
+class WhenClauseSegment(BaseSegment):
+    """A 'WHEN' clause for a 'CASE' statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONDITIONALS-SIMPLE-CASE
+    """
+
+    type = "when_clause"
+    match_grammar: Matchable = Sequence(
+        "WHEN",
+        # NOTE: The nested sequence here is to ensure the correct
+        # placement of the meta segments when templated elements
+        # are present.
+        # https://github.com/sqlfluff/sqlfluff/issues/3988
+        Sequence(
+            ImplicitIndent,
+            Delimited(Ref("ExpressionSegment")),
+            Dedent,
+        ),
+        Conditional(Indent, indented_then=True),
+        "THEN",
+        Conditional(ImplicitIndent, indented_then_contents=True),
+        OneOf(Ref("ExpressionSegment"), Ref("OneOrMoreStatementsGrammar")),
+        Conditional(Dedent, indented_then_contents=True),
+        Conditional(Dedent, indented_then=True),
+    )
+
+
+class ElseClauseSegment(BaseSegment):
+    """An 'ELSE' clause for a 'CASE' statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONDITIONALS-SIMPLE-CASE
+    """
+
+    type = "else_clause"
+    match_grammar: Matchable = Sequence(
+        "ELSE",
+        ImplicitIndent,
+        OneOf(Ref("ExpressionSegment"), Ref("OneOrMoreStatementsGrammar")),
+        Dedent,
+    )
+
+
+class ForLoopStatementSegment(BaseSegment):
+    """A `FOR LOOP` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-INTEGER-FOR
+    """
+
+    type = "for_loop_statement"
+
+    match_grammar: Matchable = Sequence(
+        "FOR",
+        Ref("SingleIdentifierGrammar"),
+        "IN",
+        Delimited(
+            Sequence(
+                Ref.keyword("REVERSE", optional=True),
+                OneOf(
+                    OptionallyBracketed(Ref("SelectStatementSegment")),
+                    Ref("ExecuteStatementSegment"),
+                    Ref("IterationSteppedControlGrammar"),
+                    Ref("ExpressionSegment"),
+                ),
+            )
+        ),
+        Ref("LoopStatementSegment"),
+    )
+
+
+class ForeachStatementSegment(BaseSegment):
+    """A `FOREACH` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-FOREACH-ARRAY
+    """
+
+    type = "foreach_statement"
+
+    match_grammar: Matchable = Sequence(
+        "FOREACH",
+        Ref("SingleIdentifierGrammar"),
+        Sequence("SLICE", Ref("NumericLiteralSegment"), optional=True),
+        "IN",
+        "ARRAY",
+        Ref("ExpressionSegment"),
+        Ref("LoopStatementSegment"),
+    )
+
+
+class WhileLoopStatementSegment(BaseSegment):
+    """A `WHILE LOOP` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONTROL-STRUCTURES-LOOPS-WHILE
+    """
+
+    type = "while_loop_statement"
+
+    match_grammar: Matchable = Sequence(
+        "WHILE",
+        Ref("ExpressionSegment"),
+        Ref("LoopStatementSegment"),
+    )
+
+
+class LoopStatementSegment(BaseSegment):
+    """A `LOOP` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONTROL-STRUCTURES-LOOPS-LOOP
+    """
+
+    type = "loop_statement"
+
+    match_grammar: Matchable = Sequence(
+        "LOOP",
+        Ref("OneOrMoreStatementsGrammar"),
+        "END",
+        "LOOP",
+        Ref("SingleIdentifierGrammar", optional=True),
+    )
+
+
+class ExitStatementSegment(BaseSegment):
+    """An `EXIT` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONTROL-STRUCTURES-LOOPS-EXIT
+    """
+
+    type = "exit_statement"
+
+    match_grammar = Sequence(
+        "EXIT",
+        Ref("SingleIdentifierGrammar", optional=True),
+        Sequence("WHEN", Ref("ExpressionSegment"), optional=True),
+    )
+
+
+class ContinueStatementSegment(BaseSegment):
+    """A `CONTINUE` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-CONTROL-STRUCTURES-LOOPS-CONTINUE
+    """
+
+    type = "continue_statement"
+
+    match_grammar = Sequence(
+        "CONTINUE",
+        Ref("SingleIdentifierGrammar", optional=True),
+        Sequence("WHEN", Ref("ExpressionSegment"), optional=True),
     )
