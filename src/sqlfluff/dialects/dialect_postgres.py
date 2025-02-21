@@ -728,6 +728,7 @@ postgres_dialect.replace(
         "SEPARATOR",
         Sequence("WITH", "DATA"),
         Ref("ForClauseSegment"),
+        "LOOP",
     ),
     AccessorGrammar=AnyNumberOf(
         Ref("ArrayAccessorSegment"),
@@ -4864,6 +4865,8 @@ class StatementSegment(ansi.StatementSegment):
             Ref("ForLoopStatementSegment"),
             Ref("ForeachStatementSegment"),
             Ref("WhileLoopStatementSegment"),
+            Ref("GetStackedDiagnosticsStatementSegment"),
+            Ref("GetDiagnosticsStatementSegment"),
         ],
     )
 
@@ -7196,4 +7199,59 @@ class ContinueStatementSegment(BaseSegment):
         "CONTINUE",
         Ref("SingleIdentifierGrammar", optional=True),
         Sequence("WHEN", Ref("ExpressionSegment"), optional=True),
+    )
+
+
+class GetStackedDiagnosticsStatementSegment(BaseSegment):
+    """A `GET STACKED DIAGNOSTICS` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-control-structures.html#PLPGSQL-EXCEPTION-DIAGNOSTICS
+    """
+
+    type = "get_stacked_diagnostics_statement"
+
+    match_grammar = Sequence(
+        "GET",
+        "STACKED",
+        "DIAGNOSTICS",
+        Delimited(
+            Sequence(
+                Ref("SingleIdentifierGrammar"),
+                OneOf(Ref("EqualsSegment"), Ref("WalrusOperatorSegment")),
+                OneOf(
+                    "RETURNED_SQLSTATE",
+                    "COLUMN_NAME",
+                    "CONSTRAINT_NAME",
+                    "PG_DATATYPE_NAME",
+                    "MESSAGE_TEXT",
+                    "TABLE_NAME",
+                    "SCHEMA_NAME",
+                    "PG_EXCEPTION_DETAIL",
+                    "PG_EXCEPTION_HINT",
+                    "PG_EXCEPTION_CONTEXT",
+                ),
+            )
+        ),
+    )
+
+
+class GetDiagnosticsStatementSegment(BaseSegment):
+    """A `GET DIAGNOSTICS` statement.
+
+    https://www.postgresql.org/docs/current/plpgsql-statements.html#PLPGSQL-STATEMENTS-DIAGNOSTICS
+    """
+
+    type = "get_diagnostics_statement"
+
+    match_grammar = Sequence(
+        "GET",
+        Ref.keyword("CURRENT", optional=True),
+        "DIAGNOSTICS",
+        Delimited(
+            Sequence(
+                Ref("SingleIdentifierGrammar"),
+                OneOf(Ref("EqualsSegment"), Ref("WalrusOperatorSegment")),
+                OneOf("ROW_COUNT", "PG_CONTEXT", "PG_ROUTINE_OID"),
+            )
+        ),
     )
